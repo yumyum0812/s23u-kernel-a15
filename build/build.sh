@@ -212,7 +212,7 @@ if [ "${KMI_SYMBOL_LIST_STRICT_MODE}" = "1" ]; then
     "$CWD/build/compare_to_symbol_list" "${OUT_DIR}/Module.symvers" "${OUT_DIR}/abi_symbollist.raw" &&
     echo "compare symbol list ok"
   ); then
-    if [ "$LTO" -ne "none" ]; then
+    if [ "$LTO" != "none" ]; then
       echo "symbol list not match, aborting"
       exit 1
     else
