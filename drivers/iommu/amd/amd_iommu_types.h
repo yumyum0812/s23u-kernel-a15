@@ -450,11 +450,6 @@ extern bool amd_iommu_irq_remap;
 /* kmem_cache to get tables with 128 byte alignement */
 extern struct kmem_cache *amd_iommu_irq_cache;
 
-/* Make iterating over all pci segment easier */
-#define for_each_pci_segment(pci_seg) \
-	list_for_each_entry((pci_seg), &amd_iommu_pci_seg_list, list)
-#define for_each_pci_segment_safe(pci_seg, next) \
-	list_for_each_entry_safe((pci_seg), (next), &amd_iommu_pci_seg_list, list)
 /*
  * Make iterating over all IOMMUs easier
  */
@@ -530,17 +525,6 @@ struct protection_domain {
 };
 
 /*
- * This structure contains information about one PCI segment in the system.
- */
-struct amd_iommu_pci_seg {
-	/* List with all PCI segments in the system */
-	struct list_head list;
-
-	/* PCI segment number */
-	u16 id;
-};
-
-/*
  * Structure where we save information about one hardware AMD IOMMU in the
  * system.
  */
@@ -591,7 +575,7 @@ struct amd_iommu {
 	u16 cap_ptr;
 
 	/* pci domain of this IOMMU */
-	struct amd_iommu_pci_seg *pci_seg;
+	u16 pci_seg;
 
 	/* start of exclusion range of that IOMMU */
 	u64 exclusion_start;
@@ -720,12 +704,6 @@ extern struct list_head hpet_map;
 extern struct list_head acpihid_map;
 
 /*
- * List with all PCI segments in the system. This list is not locked because
- * it is only written at driver initialization time
- */
-extern struct list_head amd_iommu_pci_seg_list;
-
-/*
  * List with all IOMMUs in the system. This list is not locked because it is
  * only written and read at driver initialization or suspend time
  */
@@ -841,13 +819,12 @@ static inline int get_hpet_devid(int id)
 }
 
 enum amd_iommu_intr_mode_type {
-	/*
-	 * The legacy format mode is not visible to users to prevent the user
-	 * from crashing x2APIC systems, which for all intents and purposes
-	 * require 128-bit IRTEs.   The legacy format will be forced as needed
-	 * when hardware doesn't support 128-bit IRTEs.
-	 */
 	AMD_IOMMU_GUEST_IR_LEGACY,
+
+	/* This mode is not visible to users. It is used when
+	 * we cannot fully enable vAPIC and fallback to only support
+	 * legacy interrupt remapping via 128-bit IRTE.
+	 */
 	AMD_IOMMU_GUEST_IR_LEGACY_GA,
 	AMD_IOMMU_GUEST_IR_VAPIC,
 };
