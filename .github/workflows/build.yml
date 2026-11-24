@@ -11,7 +11,7 @@ on:
           - none
           - thin
           - full
-        default: 'none'
+        default: 'thin'
   push:
   # pull_request:
 
@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 45
     env:
       DEBIAN_FRONTEND: noninteractive
-      LTO: ${{ inputs.lto_type || 'none' }}
+      LTO: ${{ inputs.lto_type || 'thin' }}
 
     steps:
       - name: Maximize build space
