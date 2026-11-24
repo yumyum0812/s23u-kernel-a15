@@ -11,7 +11,7 @@ on:
           - none
           - thin
           - full
-        default: 'thin'
+        default: 'none'
   push:
   # pull_request:
 
