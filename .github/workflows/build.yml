@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 45
     env:
       DEBIAN_FRONTEND: noninteractive
-      LTO: ${{ inputs.lto_type || 'thin' }}
+      LTO: ${{ inputs.lto_type || 'none' }}
 
     steps:
       - name: Maximize build space
