@@ -1,0 +1,38 @@
+if [ "$#" -ne 2 ]; then
+    echo "ERROR: illegal number of parameters" >&2
+    echo "Usage: $(basename "$0") <path/to/Module.symvers> <path/to/symbol-list>" >&2
+    exit 1
+fi
+
+ksymtab=$(mktemp)
+symbollist=$(mktemp)
+
+# List of objects, typically vmlinux + GKI modules
+objects="${KMI_STRICT_MODE_OBJECTS:-vmlinux}"
+objects=($objects)
+
+ksym=""
+
+# Parse Module.symvers, and ignore non-exported and vendor-specific symbols
+cut -d$'\t' -f2- $1 | while read line; do
+ksym=($line) # 0=symbol name; 1=object name; 2=export type
+if [[ "${ksym[2]}" != "EXPORT_SYMBOL"* ]]; then
+    continue
+elif [[ ! " ${objects[@]} " =~ " ${ksym[1]} " ]]; then
+    continue
+fi
+echo "${ksym[0]}"
+done | sort -u > $ksymtab
+
+sort -u "$2" > $symbollist
+
+delta=$(diff -u $ksymtab $symbollist | grep -v ' ')
+rm $ksymtab $symbollist
+if [ -n "$delta" ]; then
+    echo "ERROR: Differences between ksymtab and symbol list detected!" >&2
+    echo "Symbols missing from ksymtab:" >&2
+    echo "$delta" | sed -n -e 's/^+/ - /p' >&2
+    echo "Symbols missing from symbol list:" >&2
+    echo "$delta" | sed -n -e 's/^-/ - /p' >&2
+    exit 1
+fi

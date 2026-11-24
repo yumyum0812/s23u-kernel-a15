@@ -1,0 +1,85 @@
+name: Build Kernel
+
+on:
+  workflow_dispatch:
+    inputs:
+      lto_type:
+        description: 'LTO type'
+        required: true
+        type: choice
+        options:
+          - none
+          - thin
+          - full
+        default: 'thin'
+  push:
+  # pull_request:
+
+jobs:
+  build-kernel:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      LTO: ${{ inputs.lto_type || 'thin' }}
+
+    steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@v10
+        with:
+          root-reserve-mb: 1024
+          swap-size-mb: 4096
+          remove-android: 'true'
+          remove-dotnet: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'true'
+      
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          
+          echo "Installing dependencies from apt"
+          sudo apt-get install -y \
+            build-essential bc bison flex libssl-dev libelf-dev \
+            wget lsb-release software-properties-common gnupg \
+            git kmod cpio python3 python-is-python3 zstd \
+            rsync zip unzip curl device-tree-compiler dwarves lz4 gzip
+
+          echo "Downloading clang-r450784e"
+          mkdir -p clang-r450784e
+          wget -qO- https://android.googlesource.com/platform//prebuilts/clang/host/linux-x86/+archive/722c840a8e4d58b5ebdab62ce78eacdafd301208/clang-r450784e.tar.gz \
+          | tar -xz -C clang-r450784e
+          
+          ls -l clang-r450784e/bin
+          clang-r450784e/bin/clang --version
+          clang-r450784e/bin/ld.lld --version
+
+      - name: Build kernel
+        timeout-minutes: 45
+        env:
+          ENABLE_SUSFS_INPUT: ${{ inputs.enable_susfs || 'true' }}
+        run: |
+          echo "nproc=$(nproc), nproc-all=$(nproc --all), cpuinfo=$(grep -c ^processor /proc/cpuinfo)"
+
+          chmod +x ./build_kernel.sh
+
+          LLVM_DIR="clang-r450784e" \
+          MAKE_ARGS="-j$(grep -c "^processor" /proc/cpuinfo)" \
+          ./build_kernel.sh
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p /tmp/artifacts
+          find ./out -type f \( -name "Image" -o -name "Module.symvers" \) -exec cp -v {} /tmp/artifacts/ \;
+          find ./out -type f -name ".config" -exec cp -v {} /tmp/artifacts/config \;
+          test -f /tmp/artifacts/Image
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-output
+          path: /tmp/artifacts
