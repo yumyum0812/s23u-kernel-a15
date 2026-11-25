@@ -100,7 +100,6 @@
 #include <linux/resctrl.h>
 #include <linux/cn_proc.h>
 #include <linux/cpufreq_times.h>
-#include <linux/cn_proc.h>
 #include <linux/task_integrity.h>
 #include <linux/proca.h>
 #if defined(CONFIG_KSU_SUSFS_SUS_MAP) || defined(CONFIG_KSU_SUSFS_OPEN_REDIRECT)
