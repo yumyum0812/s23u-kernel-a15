@@ -344,7 +344,7 @@ static unsigned int of_bus_isa_get_flags(const __be32 *addr)
 
 static int of_bus_default_flags_match(struct device_node *np)
 {
-	return of_bus_n_addr_cells(np) == 3;
+	return 0; // return of_bus_n_addr_cells(np) == 3;
 }
 
 /*
