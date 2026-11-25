@@ -70,8 +70,6 @@ jobs:
 
       - name: Build kernel
         timeout-minutes: 45
-        env:
-          ENABLE_SUSFS_INPUT: ${{ inputs.enable_susfs || 'true' }}
         run: |
           echo "nproc=$(nproc), nproc-all=$(nproc --all), cpuinfo=$(grep -c ^processor /proc/cpuinfo)"
 
