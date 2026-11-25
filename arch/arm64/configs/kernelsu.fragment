@@ -1,0 +1,12 @@
+# CONFIG_NGKSM is not set
+# CONFIG_NGKPAD is not set
+# CONFIG_SECURITY_DEFEX is not set
+# CONFIG_UH is not set
+# CONFIG_RKP is not set
+# CONFIG_KDP is not set
+# CONFIG_KDP_CRED is not set
+# CONFIG_KDP_NS is not set
+# CONFIG_PROCA is not set
+# CONFIG_FIVE is not set
+
+CONFIG_KSU=y

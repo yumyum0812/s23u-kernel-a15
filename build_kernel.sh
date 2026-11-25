@@ -26,4 +26,5 @@ if [ ! -x "$BUILD_SCRIPT" ]; then
   exit 1
 fi
 
+ADDITIONAL_CONFIGS="kernelsu.fragment" \
 exec "$BUILD_SCRIPT" "$@"
