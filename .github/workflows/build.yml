@@ -38,22 +38,32 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install apt dependencies
         run: |
           sudo apt-get update
-          
-          echo "Installing dependencies from apt"
           sudo apt-get install -y \
             build-essential bc bison flex libssl-dev libelf-dev \
             wget lsb-release software-properties-common gnupg \
             git kmod cpio python3 python-is-python3 zstd \
             rsync zip unzip curl device-tree-compiler dwarves lz4 gzip
 
+      - name: Cache clang-r450784e
+        id: cache-clang
+        uses: actions/cache@v4
+        with:
+          path: clang-r450784e
+          key: clang-r450784e-722c840a8e4d
+
+      - name: Download clang-r450784e
+        if: steps.cache-clang.outputs.cache-hit != 'true'
+        run: |
           echo "Downloading clang-r450784e"
           mkdir -p clang-r450784e
           wget -qO- https://android.googlesource.com/platform//prebuilts/clang/host/linux-x86/+archive/722c840a8e4d58b5ebdab62ce78eacdafd301208/clang-r450784e.tar.gz \
           | tar -xz -C clang-r450784e
-          
+
+      - name: Verify clang
+        run: |
           ls -l clang-r450784e/bin
           clang-r450784e/bin/clang --version
           clang-r450784e/bin/ld.lld --version
